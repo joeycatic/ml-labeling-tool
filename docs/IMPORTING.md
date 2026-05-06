@@ -1,0 +1,72 @@
+# Importing Mail into Email Labeling Dashboard
+
+## Supported Formats
+
+The import page accepts:
+
+- CSV
+- JSON
+- EML
+- MBOX
+
+## Recommended Import Order
+
+### Structured data
+
+Use CSV or JSON when you already have extracted email records.
+
+Recommended fields:
+
+- `messageId`
+- `senderEmail`
+- `subject`
+- `snippet`
+- `bodyText`
+- `receivedAt`
+
+### Mailbox files
+
+Use EML or MBOX when you are exporting from a mail client.
+
+- `.eml` is good for single messages
+- `.mbox` is good for folders or batches
+
+## WEB.DE Workflow
+
+WEB.DE does not provide a clean native CSV/JSON mailbox export. The simplest free route is:
+
+1. enable `POP3/IMAP Abruf` in WEB.DE
+2. connect the account in Thunderbird via IMAP
+3. export messages or folders locally
+4. upload those files in this app
+
+### Thunderbird path
+
+1. Add the WEB.DE account in Thunderbird.
+2. Let the mailbox sync.
+3. Export:
+   - selected messages as `.eml`, or
+   - a folder as `.mbox`
+4. Open `/import` in the dashboard.
+5. Upload the file and import it into SQLite.
+
+## Import Rules
+
+- `messageId` is strongly recommended for deduplication
+- `senderEmail` and `receivedAt` should always be present
+- categories and labels can be imported, but unlabeled imports are fine
+- extensionless mailbox files are detected by content, not only by filename
+
+## Troubleshooting
+
+### The file picker accepts the file but import seems slow
+
+Large mailbox files are uploaded to the server and parsed there. For MBOX imports, wait for the import result instead of expecting an instant local parse.
+
+### The import succeeds but the email body looks messy
+
+That is normal for some plaintext conversions from HTML-heavy mail. Labeling uses the text body, and the raw body is still kept for later processing.
+
+### Why not direct provider APIs?
+
+The project is designed to stay free and local-first. File-based import keeps the workflow simple and avoids provider-specific API setup.
