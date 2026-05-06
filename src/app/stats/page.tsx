@@ -7,13 +7,32 @@ import { formatDateTime } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+const LABEL_BAR_STYLES = {
+  important: {
+    track: "bg-rose-100 dark:bg-rose-500/10",
+    fill: "bg-rose-500 dark:bg-rose-300",
+  },
+  useful: {
+    track: "bg-emerald-100 dark:bg-emerald-500/10",
+    fill: "bg-emerald-500 dark:bg-emerald-300",
+  },
+  irrelevant: {
+    track: "bg-slate-200 dark:bg-slate-500/10",
+    fill: "bg-slate-500 dark:bg-slate-300",
+  },
+  skip: {
+    track: "bg-amber-100 dark:bg-amber-500/10",
+    fill: "bg-amber-500 dark:bg-amber-300",
+  },
+} as const;
+
 export default async function StatsPage() {
   const stats = await getStats();
 
   return (
     <div className="space-y-6">
       <Panel title="Labeling Progress" description="Track throughput, class balance, and recent activity across the dataset.">
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_repeat(4,minmax(0,1fr))]">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_repeat(6,minmax(0,1fr))]">
           <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
             <div className="space-y-3">
               <p className="text-sm font-medium text-stone-600">Overall progress</p>
@@ -28,6 +47,8 @@ export default async function StatsPage() {
             { label: "Unlabeled", value: stats.summary.unlabeled },
             { label: "Skipped", value: stats.summary.skipped },
             { label: "Completion", value: `${stats.summary.progressPercentage}%` },
+            { label: "Duplicate clusters", value: stats.duplicateClusterCount },
+            { label: "Emails with attachments", value: stats.attachmentEmailCount },
           ].map((item) => (
             <div
               key={item.label}
@@ -57,9 +78,15 @@ export default async function StatsPage() {
                   </div>
                   <span className="text-sm font-medium text-stone-700">{item.count}</span>
                 </div>
-                <div className="h-3 overflow-hidden rounded-full bg-stone-200">
+                <div
+                  className={`h-3 overflow-hidden rounded-full ${
+                    LABEL_BAR_STYLES[item.key as keyof typeof LABEL_BAR_STYLES].track
+                  }`}
+                >
                   <div
-                    className="h-full rounded-full bg-stone-900"
+                    className={`h-full rounded-full ${
+                      LABEL_BAR_STYLES[item.key as keyof typeof LABEL_BAR_STYLES].fill
+                    }`}
                     style={{
                       width: `${stats.summary.total === 0 ? 0 : Math.round((item.count / stats.summary.total) * 100)}%`,
                     }}
@@ -81,9 +108,9 @@ export default async function StatsPage() {
                   </div>
                   <span className="text-sm font-medium text-stone-700">{item.count}</span>
                 </div>
-                <div className="h-3 overflow-hidden rounded-full bg-stone-200">
+                <div className="h-3 overflow-hidden rounded-full bg-stone-200 dark:bg-stone-800">
                   <div
-                    className="h-full rounded-full bg-stone-900"
+                    className="h-full rounded-full bg-stone-900 dark:bg-stone-200"
                     style={{
                       width: `${stats.summary.total === 0 ? 0 : Math.round((item.count / stats.summary.total) * 100)}%`,
                     }}
@@ -135,6 +162,43 @@ export default async function StatsPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </Panel>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Panel title="Sender domains" description="Top domains help you spot distribution shifts or source bias.">
+          {stats.topSenderDomains.length === 0 ? (
+            <p className="text-sm text-stone-600">No sender domains are available yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {stats.topSenderDomains.map((domain) => (
+                <div
+                  key={domain.domain}
+                  className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3"
+                >
+                  <span className="text-sm font-medium text-stone-800">{domain.domain}</span>
+                  <span className="text-sm text-stone-600">{domain.count}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </Panel>
+
+        <Panel title="Mailbox intelligence" description="Deterministic local signals to guide dataset cleanup.">
+          <div className="space-y-3 text-sm text-stone-700">
+            <div className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
+              <p className="font-medium text-stone-900">Thread-linked emails</p>
+              <p className="mt-1">{stats.threadedEmailCount}</p>
+            </div>
+            <div className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
+              <p className="font-medium text-stone-900">Duplicate content clusters</p>
+              <p className="mt-1">{stats.duplicateClusterCount}</p>
+            </div>
+            <div className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
+              <p className="font-medium text-stone-900">Emails with attachments</p>
+              <p className="mt-1">{stats.attachmentEmailCount}</p>
+            </div>
           </div>
         </Panel>
       </div>

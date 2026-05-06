@@ -1,5 +1,6 @@
 import type { EmailRecord } from "@/lib/serializers";
-import { formatDateTime, toDisplayText } from "@/lib/utils";
+import { extractSenderDomain } from "@/lib/email-fingerprint";
+import { formatDateTime, inferSuggestedLabel, toDisplayText } from "@/lib/utils";
 
 import { CategoryBadge, LabelBadge } from "./badge";
 import { Panel } from "./panel";
@@ -11,6 +12,16 @@ export function EmailCard({
   email: EmailRecord;
   compact?: boolean;
 }) {
+  const suggestedLabel = inferSuggestedLabel({
+    senderEmail: email.senderEmail,
+    subject: email.subject,
+    bodyText: email.bodyText,
+  });
+  const attachmentNames = email.attachmentNamesJson
+    ? (JSON.parse(email.attachmentNamesJson) as string[])
+    : [];
+  const senderDomain = extractSenderDomain(email.senderEmail);
+
   return (
     <Panel className={compact ? "" : "h-full"}>
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-stone-100 pb-4">
@@ -18,6 +29,11 @@ export function EmailCard({
           <div className="flex flex-wrap items-center gap-2">
             <LabelBadge label={email.label} />
             <CategoryBadge category={email.category} />
+            {suggestedLabel ? (
+              <span className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-sky-800">
+                Suggested: {suggestedLabel}
+              </span>
+            ) : null}
           </div>
           <h2 className="text-2xl font-semibold text-stone-950">
             {email.subject.trim() || "Untitled email"}
@@ -41,6 +57,14 @@ export function EmailCard({
             <dt className="font-medium text-stone-900">Recipient</dt>
             <dd>{toDisplayText(email.recipientEmail)}</dd>
           </div>
+          <div>
+            <dt className="font-medium text-stone-900">Sender domain</dt>
+            <dd>{toDisplayText(senderDomain)}</dd>
+          </div>
+          <div>
+            <dt className="font-medium text-stone-900">Attachments</dt>
+            <dd>{email.attachmentCount}</dd>
+          </div>
         </dl>
       </div>
 
@@ -62,6 +86,24 @@ export function EmailCard({
             {email.bodyText?.trim() || "No plain-text body available."}
           </div>
         </section>
+
+        {attachmentNames.length > 0 ? (
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-stone-500">
+              Attachment names
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {attachmentNames.map((attachmentName) => (
+                <span
+                  key={attachmentName}
+                  className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs font-medium text-stone-700"
+                >
+                  {attachmentName}
+                </span>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {email.notes ? (
           <section className="space-y-2">

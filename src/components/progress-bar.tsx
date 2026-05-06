@@ -12,9 +12,9 @@ export function ProgressBar({ value, total }: ProgressBarProps) {
         <span>{value} labeled</span>
         <span>{ratio}% complete</span>
       </div>
-      <div className="progress-track h-3 rounded-full bg-stone-200">
+      <div className="progress-track h-3 rounded-full bg-stone-200 dark:bg-stone-800">
         <div
-          className="progress-fill h-full rounded-full bg-stone-900"
+          className="progress-fill h-full rounded-full bg-stone-900 dark:bg-stone-100"
           style={{ width: `${ratio}%` }}
         />
       </div>

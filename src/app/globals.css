@@ -421,13 +421,23 @@ button {
 }
 
 .dark .bg-stone-50,
+.dark .bg-stone-50\/60,
+.dark .bg-stone-50\/90,
 .dark .bg-stone-50\/75,
 .dark .bg-stone-50\/80 {
   background-color: #171719 !important;
 }
 
+.dark .bg-stone-200 {
+  background-color: #2a2a2e !important;
+}
+
 .dark .bg-stone-100 {
   background-color: #202024 !important;
+}
+
+.dark .bg-stone-100\/80 {
+  background-color: rgba(39, 39, 42, 0.78) !important;
 }
 
 .dark .border-stone-100 {
@@ -468,12 +478,21 @@ button {
   background-color: #18181b !important;
 }
 
+.dark .hover\:bg-stone-50\/60:hover,
+.dark .hover\:bg-stone-50\/90:hover {
+  background-color: #1d1d21 !important;
+}
+
 .dark .hover\:border-stone-300:hover {
   border-color: #52525b !important;
 }
 
 .dark .bg-emerald-50 {
   background-color: rgba(16, 185, 129, 0.12) !important;
+}
+
+.dark .bg-emerald-100 {
+  background-color: rgba(16, 185, 129, 0.24) !important;
 }
 
 .dark .bg-emerald-50\/75,
@@ -506,6 +525,10 @@ button {
   border-color: rgba(52, 211, 153, 0.78) !important;
 }
 
+.dark .hover\:bg-emerald-100:hover {
+  background-color: rgba(16, 185, 129, 0.28) !important;
+}
+
 .dark .text-emerald-900,
 .dark .text-emerald-800,
 .dark .text-emerald-700 {
@@ -518,6 +541,10 @@ button {
 
 .dark .bg-rose-50 {
   background-color: rgba(244, 63, 94, 0.12) !important;
+}
+
+.dark .bg-rose-100 {
+  background-color: rgba(244, 63, 94, 0.24) !important;
 }
 
 .dark .bg-rose-50\/75,
@@ -550,6 +577,10 @@ button {
   border-color: rgba(251, 113, 133, 0.78) !important;
 }
 
+.dark .hover\:bg-rose-100:hover {
+  background-color: rgba(244, 63, 94, 0.28) !important;
+}
+
 .dark .text-rose-900,
 .dark .text-rose-800,
 .dark .text-rose-700 {
@@ -558,6 +589,18 @@ button {
 
 .dark .text-rose-950 {
   color: #fff1f2 !important;
+}
+
+.dark .bg-slate-50 {
+  background-color: rgba(148, 163, 184, 0.14) !important;
+}
+
+.dark .bg-slate-100 {
+  background-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+.dark .bg-slate-200 {
+  background-color: rgba(148, 163, 184, 0.28) !important;
 }
 
 .dark .bg-slate-50\/80 {
@@ -581,12 +624,28 @@ button {
   border-color: rgba(203, 213, 225, 0.54) !important;
 }
 
+.dark .border-slate-400 {
+  border-color: rgba(203, 213, 225, 0.64) !important;
+}
+
 .dark .border-slate-500 {
   border-color: rgba(148, 163, 184, 0.72) !important;
 }
 
+.dark .border-slate-600 {
+  border-color: rgba(148, 163, 184, 0.78) !important;
+}
+
+.dark .hover\:bg-slate-100:hover {
+  background-color: rgba(148, 163, 184, 0.24) !important;
+}
+
 .dark .text-slate-700 {
   color: #cbd5e1 !important;
+}
+
+.dark .text-slate-800 {
+  color: #e2e8f0 !important;
 }
 
 .dark .text-slate-950 {
@@ -595,6 +654,10 @@ button {
 
 .dark .bg-amber-50 {
   background-color: rgba(245, 158, 11, 0.12) !important;
+}
+
+.dark .bg-amber-100 {
+  background-color: rgba(245, 158, 11, 0.24) !important;
 }
 
 .dark .bg-amber-50\/80 {
@@ -626,6 +689,10 @@ button {
   border-color: rgba(251, 191, 36, 0.76) !important;
 }
 
+.dark .hover\:bg-amber-100:hover {
+  background-color: rgba(245, 158, 11, 0.28) !important;
+}
+
 .dark .text-amber-900,
 .dark .text-amber-800,
 .dark .text-amber-700 {
@@ -634,6 +701,18 @@ button {
 
 .dark .text-amber-950 {
   color: #fffbeb !important;
+}
+
+.dark .bg-sky-50 {
+  background-color: rgba(14, 165, 233, 0.14) !important;
+}
+
+.dark .border-sky-200 {
+  border-color: rgba(125, 211, 252, 0.32) !important;
+}
+
+.dark .text-sky-800 {
+  color: #bae6fd !important;
 }
 
 .dark .bg-stone-900 {

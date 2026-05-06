@@ -1,14 +1,13 @@
-import Link from "next/link";
-
 import { CategoryBadge, LabelBadge } from "@/components/badge";
 import { EmailCard } from "@/components/email-card";
 import { EmailEditor } from "@/components/email-editor";
 import { Panel } from "@/components/panel";
 import { CATEGORY_META, CATEGORY_VALUES, LABEL_META, LABEL_VALUES } from "@/lib/constants";
-import { getEmailById, listEmails } from "@/lib/emails";
+import { getEmailById, getEmailHistory, listEmails } from "@/lib/emails";
 import { serializeEmail } from "@/lib/serializers";
-import { formatShortDate } from "@/lib/utils";
 import { listEmailsQuerySchema } from "@/lib/validation";
+
+import { EmailsTableClient } from "./emails-table-client";
 
 export const dynamic = "force-dynamic";
 
@@ -61,8 +60,27 @@ export default async function EmailsPage({
 
   const result = await listEmails(parsed);
   const selectedId = parsed.emailId ?? result.emails[0]?.id ?? null;
-  const selectedEmail = selectedId ? await getEmailById(selectedId) : null;
+  const [selectedEmail, history] = await Promise.all([
+    selectedId ? getEmailById(selectedId) : null,
+    selectedId ? getEmailHistory(selectedId, 12) : [],
+  ]);
   const selectedRecord = serializeEmail(selectedEmail);
+  const rows = result.emails.map((email) => ({
+    id: email.id,
+    href: `/emails?${buildQueryString(rawParams, {
+      emailId: email.id,
+      page: result.page,
+    })}`,
+    selected: selectedId === email.id,
+    subject: email.subject,
+    snippet: email.snippet,
+    bodyText: email.bodyText,
+    senderName: email.senderName,
+    senderEmail: email.senderEmail,
+    receivedAt: email.receivedAt.toISOString(),
+    label: email.label,
+    category: email.category,
+  }));
 
   return (
     <div className="space-y-6">
@@ -134,93 +152,20 @@ export default async function EmailsPage({
           {result.emails.length === 0 ? (
             <p className="text-sm text-stone-600">No emails match the current filter set.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-stone-200 text-left text-sm">
-                <thead className="bg-stone-50 text-stone-600">
-                  <tr>
-                    <th className="px-3 py-3 font-medium">Subject</th>
-                    <th className="px-3 py-3 font-medium">Sender</th>
-                    <th className="px-3 py-3 font-medium">Received</th>
-                    <th className="px-3 py-3 font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-100">
-                  {result.emails.map((email) => {
-                    const href = `/emails?${buildQueryString(rawParams, {
-                      emailId: email.id,
-                      page: result.page,
-                    })}`;
-
-                    return (
-                      <tr
-                        key={email.id}
-                        className={
-                          selectedId === email.id ? "bg-stone-50/90" : "hover:bg-stone-50/60"
-                        }
-                      >
-                        <td className="px-3 py-3 align-top">
-                          <Link href={href} className="block space-y-1">
-                            <span className="line-clamp-2 font-medium text-stone-950">
-                              {email.subject || "Untitled email"}
-                            </span>
-                            <span className="line-clamp-2 text-xs text-stone-500">
-                              {email.snippet || email.bodyText || "No preview available."}
-                            </span>
-                          </Link>
-                        </td>
-                        <td className="px-3 py-3 align-top text-stone-600">
-                          <div className="space-y-1">
-                            <p>{email.senderName || email.senderEmail}</p>
-                            <p className="text-xs">{email.senderEmail}</p>
-                          </div>
-                        </td>
-                        <td className="px-3 py-3 align-top text-stone-600">
-                          {formatShortDate(email.receivedAt)}
-                        </td>
-                        <td className="px-3 py-3 align-top">
-                          <div className="flex flex-wrap gap-2">
-                            <LabelBadge label={email.label} />
-                            <CategoryBadge category={email.category} />
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          <div className="mt-5 flex items-center justify-between border-t border-stone-100 pt-4 text-sm text-stone-600">
-            <Link
-              href={`/emails?${buildQueryString(rawParams, {
+            <EmailsTableClient
+              emails={rows}
+              totalCount={result.totalCount}
+              page={result.page}
+              totalPages={result.totalPages}
+              pageSize={result.pageSize}
+              previousPageHref={`/emails?${buildQueryString(rawParams, {
                 page: Math.max(1, result.page - 1),
               })}`}
-              className={`rounded-full border px-4 py-2 ${
-                result.page === 1
-                  ? "pointer-events-none border-stone-100 text-stone-300"
-                  : "border-stone-200 bg-stone-50 text-stone-700 hover:border-stone-300 hover:bg-stone-100"
-              }`}
-            >
-              Previous page
-            </Link>
-            <span>
-              Showing {(result.page - 1) * result.pageSize + 1} to{" "}
-              {Math.min(result.page * result.pageSize, result.totalCount)} of {result.totalCount}
-            </span>
-            <Link
-              href={`/emails?${buildQueryString(rawParams, {
+              nextPageHref={`/emails?${buildQueryString(rawParams, {
                 page: Math.min(result.totalPages, result.page + 1),
               })}`}
-              className={`rounded-full border px-4 py-2 ${
-                result.page === result.totalPages
-                  ? "pointer-events-none border-stone-100 text-stone-300"
-                  : "border-stone-200 bg-stone-50 text-stone-700 hover:border-stone-300 hover:bg-stone-100"
-              }`}
-            >
-              Next page
-            </Link>
-          </div>
+            />
+          )}
         </Panel>
 
         {selectedRecord ? (
@@ -228,6 +173,40 @@ export default async function EmailsPage({
             <EmailCard email={selectedRecord} compact />
             <Panel title="Edit label" description="Adjust the primary label, optional category, or notes.">
               <EmailEditor email={selectedRecord} />
+            </Panel>
+            <Panel title="Recent history" description="Append-only audit events for this email.">
+              {history.length === 0 ? (
+                <p className="text-sm text-stone-600">No history has been recorded yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {history.map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3"
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        <LabelBadge label={entry.label} />
+                        <CategoryBadge category={entry.category} />
+                        <span className="rounded-full border border-stone-200 bg-white px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-stone-600">
+                          {entry.eventType}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm font-medium text-stone-900">
+                        {entry.subject || "Untitled email"}
+                      </p>
+                      <p className="mt-1 text-xs text-stone-600">
+                        Source: {entry.sourceSurface} • Changed: {entry.changedFields.join(", ") || "n/a"}
+                      </p>
+                      <p className="mt-1 text-xs uppercase tracking-[0.14em] text-stone-500">
+                        {new Intl.DateTimeFormat("en-GB", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        }).format(new Date(entry.createdAt))}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </Panel>
           </div>
         ) : (
