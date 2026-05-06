@@ -27,22 +27,26 @@ export function AppNavigation() {
 
   return (
     <header className="app-header sticky top-0 z-40 border-b border-stone-200/80 bg-white/90">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-2.5 px-4 py-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-3">
-          <Link href="/label" className="group inline-flex items-center gap-3 rounded-2xl">
-            <span className="brand-mark inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-900 shadow-[0_14px_32px_-28px_rgba(28,25,23,0.35)] transition duration-200 group-hover:-translate-y-0.5">
-              <Tags className="h-4 w-4" />
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:gap-4 lg:px-8">
+        <Link
+          href="/label"
+          className="group inline-flex shrink-0 items-center gap-3 rounded-2xl"
+        >
+          <span className="brand-mark inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-900 shadow-[0_14px_32px_-28px_rgba(28,25,23,0.35)] transition duration-200 group-hover:-translate-y-0.5">
+            <Tags className="h-4 w-4" />
+          </span>
+          <span className="min-w-0 leading-none">
+            <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">
+              Local-first
             </span>
-            <span className="block text-lg font-semibold tracking-tight text-stone-950">
+            <span className="mt-1 block truncate text-lg font-semibold tracking-tight text-stone-950">
               Email Labeling Dashboard
             </span>
-          </Link>
-          <div className="theme-slot rounded-2xl border border-stone-200 bg-white/82 p-1 shadow-[0_16px_40px_-34px_rgba(28,25,23,0.28)]">
-            <ThemeToggle />
-          </div>
-        </div>
-        <div className="nav-frame rounded-[22px] border border-stone-200 bg-white/88 p-1 shadow-[0_18px_46px_-38px_rgba(28,25,23,0.28)]">
-          <nav className="nav-rail grid grid-cols-2 gap-1 lg:grid-cols-5">
+          </span>
+        </Link>
+
+        <div className="nav-frame flex-1 rounded-[24px] border border-stone-200 bg-white/88 p-1 shadow-[0_18px_46px_-38px_rgba(28,25,23,0.28)]">
+          <nav className="nav-rail nav-scroll flex items-center gap-1 overflow-x-auto px-0.5 lg:justify-center">
             {NAV_ITEMS.map((item) => {
               const active =
                 pathname === item.href ||
@@ -53,7 +57,7 @@ export function AppNavigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`nav-pill nav-link group flex min-h-[42px] items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-medium ${
+                  className={`nav-pill nav-link group inline-flex shrink-0 items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-medium whitespace-nowrap ${
                     active
                       ? "nav-pill-active nav-link-active border-stone-900 bg-stone-900 text-white"
                       : "border-transparent bg-transparent text-stone-700 hover:border-stone-200 hover:bg-stone-50/90 hover:text-stone-950"
@@ -73,6 +77,12 @@ export function AppNavigation() {
               );
             })}
           </nav>
+        </div>
+
+        <div className="flex shrink-0 justify-end">
+          <div className="theme-slot rounded-2xl p-0">
+            <ThemeToggle />
+          </div>
         </div>
       </div>
     </header>

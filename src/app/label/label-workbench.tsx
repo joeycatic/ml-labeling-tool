@@ -354,8 +354,8 @@ export function LabelWorkbench({
                         >
                           <span className="flex items-start gap-3">
                             <span
-                              className={`mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-2xl border bg-white/80 ${
-                                isSelected ? "border-current/25" : "border-current/15"
+                              className={`mt-0.5 inline-flex h-11 w-11 shrink-0 items-center justify-center self-start rounded-full border bg-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] ${
+                                isSelected ? "border-current/35" : "border-current/25"
                               }`}
                             >
                               {isWorking ? (
