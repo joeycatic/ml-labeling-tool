@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Email {
+  id             Int      @id @default(autoincrement())
+  messageId      String   @unique
+  threadId       String?
+  senderName     String?
+  senderEmail    String
+  recipientEmail String?
+  subject        String   @default("")
+  snippet        String   @default("")
+  bodyText       String?
+  bodyHtml       String?
+  receivedAt     DateTime
+  label          String?
+  category       String?
+  notes          String?
+  labeledAt      DateTime?
+  isLabeled      Boolean  @default(false)
+  source         String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([label])
+  @@index([isLabeled])
+  @@index([receivedAt])
+  @@index([senderEmail])
+  @@index([messageId])
+  @@index([category])
+  @@index([isLabeled, receivedAt])
+}
