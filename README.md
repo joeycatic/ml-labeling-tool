@@ -2,6 +2,22 @@
 
 Local-first labeling workspace for building a university email relevance dataset without any paid services, cloud storage, or hosted dependencies.
 
+![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-Local--first-003B57?style=flat-square&logo=sqlite&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma&logoColor=white)
+![License](https://img.shields.io/badge/Use-Local%20and%20free-111827?style=flat-square)
+
+## Preview
+
+| Labeling workspace | Import workflow |
+| --- | --- |
+| ![Label dashboard light mode](./docs/assets/label-dashboard-light.png) | ![Import workflow](./docs/assets/import-workflow.png) |
+
+<p align="center">
+  <img src="./docs/assets/label-dashboard-dark.png" alt="Label dashboard dark mode" width="88%" />
+</p>
+
 ## Overview
 
 This project is a Next.js dashboard for turning raw mailbox exports into a clean supervised learning dataset.
