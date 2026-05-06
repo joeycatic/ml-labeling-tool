@@ -45,15 +45,34 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
+      role="switch"
+      aria-checked={isDark}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       onClick={() => {
         const nextTheme = isDark ? "light" : "dark";
         applyTheme(nextTheme);
       }}
-      className="theme-toggle nav-pill inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-3.5 py-2 text-sm font-medium text-stone-800 hover:border-stone-300 hover:bg-stone-100"
+      className={`theme-toggle theme-slider relative inline-flex h-10 w-[72px] items-center rounded-full border px-1 ${
+        isDark
+          ? "border-stone-900 bg-stone-900 text-white"
+          : "border-stone-200 bg-white text-stone-800"
+      }`}
     >
-      {isDark ? <SunMedium className="h-4 w-4" /> : <MoonStar className="h-4 w-4" />}
-      <span>{isDark ? "Light" : "Dark"}</span>
+      <span className="pointer-events-none absolute inset-y-0 left-3 inline-flex items-center text-stone-500 transition-colors duration-300 dark:text-stone-400">
+        <SunMedium className="h-3.5 w-3.5" />
+      </span>
+      <span className="pointer-events-none absolute inset-y-0 right-3 inline-flex items-center text-stone-500 transition-colors duration-300 dark:text-stone-300">
+        <MoonStar className="h-3.5 w-3.5" />
+      </span>
+      <span
+        className={`theme-slider-thumb pointer-events-none inline-flex h-8 w-8 items-center justify-center rounded-full shadow-[0_14px_24px_-18px_rgba(0,0,0,0.45)] ${
+          isDark
+            ? "translate-x-8 bg-white text-stone-950"
+            : "translate-x-0 bg-stone-900 text-white"
+        }`}
+      >
+        {isDark ? <MoonStar className="h-4 w-4" /> : <SunMedium className="h-4 w-4" />}
+      </span>
     </button>
   );
 }

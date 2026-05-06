@@ -1,7 +1,13 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { ChartColumn, Download, Inbox, Tags, Upload } from "lucide-react";
+import {
+  ChartColumn,
+  Download,
+  Inbox,
+  Tags,
+  Upload,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -20,25 +26,23 @@ export function AppNavigation() {
   const pathname = usePathname();
 
   return (
-    <header className="app-header border-b border-stone-200 bg-white">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <div className="space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-stone-500">
-              Local-first workflow
-            </p>
-            <div>
-              <Link href="/label" className="text-2xl font-semibold text-stone-950">
-                Email Labeling Dashboard
-              </Link>
-              <p className="text-sm text-stone-600">
-                SQLite, Prisma, keyboard shortcuts, and export-ready training data.
-              </p>
-            </div>
+    <header className="app-header sticky top-0 z-40 border-b border-stone-200/80 bg-white/90">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-2.5 px-4 py-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-3">
+          <Link href="/label" className="group inline-flex items-center gap-3 rounded-2xl">
+            <span className="brand-mark inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-900 shadow-[0_14px_32px_-28px_rgba(28,25,23,0.35)] transition duration-200 group-hover:-translate-y-0.5">
+              <Tags className="h-4 w-4" />
+            </span>
+            <span className="block text-lg font-semibold tracking-tight text-stone-950">
+              Email Labeling Dashboard
+            </span>
+          </Link>
+          <div className="theme-slot rounded-2xl border border-stone-200 bg-white/82 p-1 shadow-[0_16px_40px_-34px_rgba(28,25,23,0.28)]">
+            <ThemeToggle />
           </div>
         </div>
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <nav className="nav-rail flex flex-wrap items-center gap-2 rounded-2xl border border-stone-200 bg-stone-50/90 p-1.5">
+        <div className="nav-frame rounded-[22px] border border-stone-200 bg-white/88 p-1 shadow-[0_18px_46px_-38px_rgba(28,25,23,0.28)]">
+          <nav className="nav-rail grid grid-cols-2 gap-1 lg:grid-cols-5">
             {NAV_ITEMS.map((item) => {
               const active =
                 pathname === item.href ||
@@ -49,29 +53,26 @@ export function AppNavigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`nav-pill nav-link rounded-xl border px-4 py-2.5 text-sm font-medium ${
+                  className={`nav-pill nav-link group flex min-h-[42px] items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-medium ${
                     active
                       ? "nav-pill-active nav-link-active border-stone-900 bg-stone-900 text-white"
-                      : "border-transparent bg-transparent text-stone-700 hover:border-stone-200 hover:bg-white"
+                      : "border-transparent bg-transparent text-stone-700 hover:border-stone-200 hover:bg-stone-50/90 hover:text-stone-950"
                   }`}
                 >
-                  <span className="flex items-center gap-2">
+                  <span
+                    className={`nav-link-icon inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border ${
+                      active
+                        ? "border-white/10 bg-white/12 text-white"
+                        : "border-stone-200 bg-white text-stone-600 group-hover:border-stone-900 group-hover:bg-stone-900 group-hover:text-white"
+                    }`}
+                  >
                     <Icon className="h-4 w-4" />
-                    <span>{item.label}</span>
                   </span>
+                  <span className="min-w-0 text-left font-medium">{item.label}</span>
                 </Link>
               );
             })}
           </nav>
-          <div className="theme-slot flex items-center justify-between gap-3 rounded-2xl border border-stone-200 bg-stone-50/90 px-3 py-2.5 lg:min-w-[168px]">
-            <div className="hidden sm:block">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
-                Theme
-              </p>
-              <p className="text-xs text-stone-600">Interface appearance</p>
-            </div>
-            <ThemeToggle />
-          </div>
         </div>
       </div>
     </header>

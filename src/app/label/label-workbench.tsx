@@ -219,6 +219,20 @@ export function LabelWorkbench({
     skip: AlertTriangle,
   } as const;
 
+  function setCurrentCategory(nextCategory: string) {
+    if (!currentEmail) {
+      return;
+    }
+
+    setDrafts((previous) => ({
+      ...previous,
+      [currentEmail.id]: {
+        ...currentDraft,
+        category: nextCategory,
+      },
+    }));
+  }
+
   const handleKeyboard = useEffectEvent((event: KeyboardEvent) => {
     const target = event.target as HTMLElement | null;
     const tagName = target?.tagName ?? "";
@@ -374,32 +388,38 @@ export function LabelWorkbench({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-stone-800" htmlFor="label-category">
+                  <label className="text-sm font-medium text-stone-800">
                     Optional category
                   </label>
-                  <select
-                    id="label-category"
-                    value={currentDraft.category}
-                    onChange={(event) =>
-                      currentEmail
-                        ? setDrafts((previous) => ({
-                            ...previous,
-                            [currentEmail.id]: {
-                              ...currentDraft,
-                              category: event.target.value,
-                            },
-                          }))
-                        : undefined
-                    }
-                    className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-900 outline-none transition focus:border-stone-400"
-                  >
-                    <option value="">None</option>
-                    {CATEGORY_VALUES.map((value) => (
-                      <option key={value} value={value}>
-                        {CATEGORY_META[value].title}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="category-bar rounded-2xl border border-stone-200 bg-stone-50 p-2">
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setCurrentCategory("")}
+                        className={`category-chip ${
+                          currentDraft.category === ""
+                            ? "category-chip-active"
+                            : "category-chip-idle"
+                        }`}
+                      >
+                        None
+                      </button>
+                      {CATEGORY_VALUES.map((value) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setCurrentCategory(value)}
+                          className={`category-chip ${
+                            currentDraft.category === value
+                              ? "category-chip-active"
+                              : "category-chip-idle"
+                          }`}
+                        >
+                          {CATEGORY_META[value].title}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
