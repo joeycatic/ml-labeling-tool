@@ -180,6 +180,8 @@ If your email provider does not export CSV or JSON directly, the common path is:
 3. export messages as `.eml` or `.mbox`
 4. upload them on `/import`
 
+If the database still contains the seeded placeholder emails, the first real import removes those sample rows automatically before writing your mailbox data. Older databases that already mixed sample and real emails are also cleaned automatically the next time the app loads email data.
+
 For the detailed WEB.DE workflow, see [docs/IMPORTING.md](./docs/IMPORTING.md).
 
 ## Labels

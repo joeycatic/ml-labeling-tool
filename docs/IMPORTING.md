@@ -56,6 +56,8 @@ WEB.DE does not provide a clean native CSV/JSON mailbox export. The simplest fre
 - `senderEmail` and `receivedAt` should always be present
 - categories and labels can be imported, but unlabeled imports are fine
 - extensionless mailbox files are detected by content, not only by filename
+- importing real mailbox data automatically removes seeded placeholder emails from the sample dataset
+- if an older local database already contains both sample and real emails, the app removes the seeded rows automatically on the next normal read
 
 ## Troubleshooting
 

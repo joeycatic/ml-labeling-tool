@@ -2,6 +2,9 @@ import { getDb } from "./db";
 import { importEmailRowSchema } from "./validation";
 
 type ImportEmailInput = Array<ReturnType<typeof importEmailRowSchema.parse>>;
+type NormalizedImportEmail = ReturnType<typeof importEmailRowSchema.parse> & {
+  source: string;
+};
 
 function buildFallbackMessageId(email: {
   senderEmail: string;
@@ -25,13 +28,29 @@ export async function importEmails(rows: ImportEmailInput) {
   const db = getDb();
   let created = 0;
   let updated = 0;
+  const normalizedRows: NormalizedImportEmail[] = rows.map((row) => {
+    const email = importEmailRowSchema.parse(row);
+    return {
+      ...email,
+      source: email.source ?? "import",
+    };
+  });
 
-  for (const [index, rawRow] of rows.entries()) {
-    const email = importEmailRowSchema.parse(rawRow);
+  let removedSeedCount = 0;
+  const shouldReplaceSeedData = normalizedRows.some((email) => email.source !== "seed");
+
+  if (shouldReplaceSeedData) {
+    const removedSeedEmails = await db.email.deleteMany({
+      where: { source: "seed" },
+    });
+    removedSeedCount = removedSeedEmails.count;
+  }
+
+  for (const [index, email] of normalizedRows.entries()) {
     const label = email.label ?? null;
     const category = email.category ?? null;
     const notes = email.notes ?? null;
-    const source = email.source ?? "import";
+    const source = email.source;
     const messageId =
       email.messageId?.trim() ||
       buildFallbackMessageId(
@@ -99,5 +118,6 @@ export async function importEmails(rows: ImportEmailInput) {
     imported: rows.length,
     created,
     updated,
+    removedSeedCount,
   };
 }

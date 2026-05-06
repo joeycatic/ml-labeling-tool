@@ -102,6 +102,7 @@ export function ImportClient() {
     imported: number;
     created: number;
     updated: number;
+    removedSeedCount: number;
   } | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -245,6 +246,7 @@ export function ImportClient() {
             imported: number;
             created: number;
             updated: number;
+            removedSeedCount: number;
           };
 
           if (!response.ok) {
@@ -417,6 +419,12 @@ export function ImportClient() {
               <p className="mt-1">
                 Imported {result.imported} emails. Created {result.created}, updated {result.updated}.
               </p>
+              {result.removedSeedCount > 0 ? (
+                <p className="mt-1 text-emerald-800">
+                  Removed {result.removedSeedCount} placeholder sample email
+                  {result.removedSeedCount === 1 ? "" : "s"} before importing your mailbox.
+                </p>
+              ) : null}
             </div>
           </div>
         </div>

@@ -4,6 +4,10 @@ import { CATEGORY_VALUES, LABEL_VALUES, ML_EXPORT_LABELS } from "./constants";
 import { getDb } from "./db";
 import { buildTrainingText, escapeCsv, percent } from "./utils";
 
+const globalForSeedCleanup = globalThis as typeof globalThis & {
+  seedCleanupPromise?: Promise<void>;
+};
+
 export type ProgressSummary = {
   total: number;
   labeled: number;
@@ -22,7 +26,36 @@ export type ListEmailsInput = {
   pageSize: number;
 };
 
+async function ensureSeedDataConsistency() {
+  if (globalForSeedCleanup.seedCleanupPromise) {
+    await globalForSeedCleanup.seedCleanupPromise;
+    return;
+  }
+
+  const db = getDb();
+
+  globalForSeedCleanup.seedCleanupPromise = (async () => {
+    const [seedCount, nonSeedCount] = await Promise.all([
+      db.email.count({ where: { source: "seed" } }),
+      db.email.count({ where: { NOT: { source: "seed" } } }),
+    ]);
+
+    if (seedCount > 0 && nonSeedCount > 0) {
+      await db.email.deleteMany({
+        where: { source: "seed" },
+      });
+    }
+  })();
+
+  try {
+    await globalForSeedCleanup.seedCleanupPromise;
+  } finally {
+    globalForSeedCleanup.seedCleanupPromise = undefined;
+  }
+}
+
 export async function getProgressSummary(): Promise<ProgressSummary> {
+  await ensureSeedDataConsistency();
   const db = getDb();
 
   const [total, labeled, skipped] = await Promise.all([
@@ -43,6 +76,7 @@ export async function getProgressSummary(): Promise<ProgressSummary> {
 }
 
 export async function getNextUnlabeledEmail(excludeIds: number[] = []) {
+  await ensureSeedDataConsistency();
   const db = getDb();
 
   return db.email.findFirst({
@@ -63,6 +97,7 @@ export async function getNextUnlabeledEmail(excludeIds: number[] = []) {
 }
 
 export async function getEmailById(id: number) {
+  await ensureSeedDataConsistency();
   const db = getDb();
 
   return db.email.findUnique({
@@ -74,6 +109,7 @@ export async function labelEmail(
   id: number,
   input: { label: string; category?: string | null; notes?: string | null },
 ) {
+  await ensureSeedDataConsistency();
   const db = getDb();
 
   return db.email.update({
@@ -92,6 +128,7 @@ export async function updateEmail(
   id: number,
   input: { label?: string | null; category?: string | null; notes?: string | null },
 ) {
+  await ensureSeedDataConsistency();
   const db = getDb();
   const nextLabel = input.label ?? null;
 
@@ -108,6 +145,7 @@ export async function updateEmail(
 }
 
 export async function listEmails(input: ListEmailsInput) {
+  await ensureSeedDataConsistency();
   const db = getDb();
   const where: Prisma.EmailWhereInput = {};
 
@@ -171,6 +209,7 @@ function buildCounts(
 }
 
 export async function getStats() {
+  await ensureSeedDataConsistency();
   const db = getDb();
   const summary = await getProgressSummary();
 
@@ -247,6 +286,7 @@ export type ExportRow = {
 };
 
 export async function getExportRows(includeSkipped = false): Promise<ExportRow[]> {
+  await ensureSeedDataConsistency();
   const db = getDb();
   const labels = includeSkipped ? [...ML_EXPORT_LABELS, "skip"] : [...ML_EXPORT_LABELS];
 
