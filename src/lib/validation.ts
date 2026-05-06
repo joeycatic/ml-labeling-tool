@@ -78,6 +78,18 @@ export const emailIdParamsSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
 
+export const bulkUpdateEmailsSchema = z
+  .object({
+    ids: z.array(z.coerce.number().int().positive()).min(1).max(250),
+    label: z.preprocess(emptyToNull, labelSchema.nullable().optional()),
+    category: z.preprocess(emptyToNull, categorySchema.nullable().optional()),
+    clearCategory: z.boolean().optional().default(false),
+  })
+  .refine((value) => value.label !== undefined || value.category !== undefined || value.clearCategory, {
+    message: "At least one bulk change is required.",
+    path: ["label"],
+  });
+
 const dateSchema = z.preprocess((value) => {
   if (value instanceof Date) {
     return value;
@@ -100,6 +112,9 @@ export const importEmailRowSchema = z.object({
   snippet: z.preprocess(emptyToUndefined, z.string().max(1000).optional().default("")),
   bodyText: z.preprocess(emptyToNull, z.string().nullable().optional()),
   bodyHtml: z.preprocess(emptyToNull, z.string().nullable().optional()),
+  attachmentCount: z.coerce.number().int().min(0).optional().default(0),
+  attachmentNamesJson: z.preprocess(emptyToNull, z.string().nullable().optional()),
+  contentFingerprint: z.preprocess(emptyToNull, z.string().nullable().optional()),
   receivedAt: dateSchema,
   label: z.preprocess(emptyToNull, labelSchema.nullable().optional()),
   category: z.preprocess(emptyToNull, categorySchema.nullable().optional()),

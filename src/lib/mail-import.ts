@@ -4,6 +4,11 @@ import type { AddressObject } from "mailparser";
 import { importEmailRowSchema } from "./validation";
 
 type ParsedImportRow = ReturnType<typeof importEmailRowSchema.parse>;
+type MailParseIssue = {
+  fileName?: string;
+  messageIndex?: number;
+  message: string;
+};
 
 function buildSnippet(text: string | undefined) {
   const compact = (text ?? "").replace(/\s+/g, " ").trim();
@@ -40,6 +45,9 @@ async function parseEmlMessage(
       : parsed.html
         ? String(parsed.html)
         : null;
+  const attachmentNames = parsed.attachments
+    .map((attachment) => attachment.filename?.trim())
+    .filter((attachmentName): attachmentName is string => Boolean(attachmentName));
 
   return importEmailRowSchema.parse({
     messageId: parsed.messageId ?? undefined,
@@ -51,6 +59,9 @@ async function parseEmlMessage(
     snippet: buildSnippet(parsed.text ?? undefined),
     bodyText: parsed.text ?? null,
     bodyHtml: html,
+    attachmentCount: parsed.attachments.length,
+    attachmentNamesJson:
+      attachmentNames.length > 0 ? JSON.stringify(attachmentNames) : null,
     receivedAt: parsed.date ?? new Date(),
     source,
   });
@@ -95,4 +106,72 @@ export async function parseMailboxImport(input: {
   );
 
   return parsedRows.filter((row): row is ParsedImportRow => row !== null);
+}
+
+export async function parseMailboxImportWithReport(input: {
+  format: "eml" | "mbox";
+  fileName?: string;
+  content: string;
+}) {
+  const rows: ParsedImportRow[] = [];
+  const issues: MailParseIssue[] = [];
+  let totalMessages = 0;
+
+  if (input.format === "eml") {
+    totalMessages = 1;
+
+    try {
+      const parsed = await parseEmlMessage(
+        input.content,
+        "eml-import",
+      );
+
+      if (parsed) {
+        rows.push(parsed);
+      } else {
+        issues.push({
+          fileName: input.fileName,
+          message: "Could not extract a sender address from the EML file.",
+        });
+      }
+    } catch (error) {
+      issues.push({
+        fileName: input.fileName,
+        message: error instanceof Error ? error.message : "Failed to parse EML file.",
+      });
+    }
+
+    return { rows, issues, totalMessages };
+  }
+
+  const messages = splitMbox(input.content);
+  totalMessages = messages.length;
+
+  for (const [index, message] of messages.entries()) {
+    try {
+      const parsed = await parseEmlMessage(
+        message,
+        "mbox-import",
+      );
+
+      if (parsed) {
+        rows.push(parsed);
+      } else {
+        issues.push({
+          fileName: input.fileName,
+          messageIndex: index + 1,
+          message: "Could not extract a sender address from the mailbox message.",
+        });
+      }
+    } catch (error) {
+      issues.push({
+        fileName: input.fileName,
+        messageIndex: index + 1,
+        message:
+          error instanceof Error ? error.message : "Failed to parse mailbox message.",
+      });
+    }
+  }
+
+  return { rows, issues, totalMessages };
 }

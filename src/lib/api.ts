@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
+import { AppError } from "./errors";
+
 export function apiErrorResponse(error: unknown) {
   if (error instanceof ZodError) {
     return NextResponse.json(
@@ -9,6 +11,16 @@ export function apiErrorResponse(error: unknown) {
         details: error.flatten(),
       },
       { status: 400 },
+    );
+  }
+
+  if (error instanceof AppError) {
+    return NextResponse.json(
+      {
+        error: error.message,
+        details: error.details,
+      },
+      { status: error.status },
     );
   }
 

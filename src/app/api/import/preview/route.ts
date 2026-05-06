@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { apiErrorResponse } from "@/lib/api";
 import {
   buildImportPlan,
-  commitImportPlan,
   parseImportRequest,
   serializeImportPlan,
 } from "@/lib/import-emails";
@@ -14,12 +13,8 @@ export async function POST(request: Request) {
   try {
     const payload = await parseImportRequest(request);
     const plan = await buildImportPlan(payload);
-    const result = await commitImportPlan(plan, "import-ui");
 
-    return NextResponse.json({
-      ...result,
-      preview: serializeImportPlan(plan),
-    });
+    return NextResponse.json(serializeImportPlan(plan));
   } catch (error) {
     return apiErrorResponse(error);
   }

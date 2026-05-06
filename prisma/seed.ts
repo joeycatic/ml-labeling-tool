@@ -1,5 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
+import { buildContentFingerprint } from "../src/lib/email-fingerprint";
+
 const prisma = new PrismaClient();
 
 const sampleEmails = [
@@ -241,6 +243,15 @@ const sampleEmails = [
 
 async function main() {
   for (const email of sampleEmails) {
+    const contentFingerprint = buildContentFingerprint({
+      senderEmail: email.senderEmail,
+      recipientEmail: email.recipientEmail,
+      subject: email.subject,
+      snippet: email.snippet,
+      bodyText: email.bodyText,
+      receivedAt: email.receivedAt,
+    });
+
     await prisma.email.upsert({
       where: { messageId: email.messageId },
       update: {
@@ -252,10 +263,18 @@ async function main() {
         snippet: email.snippet,
         bodyText: email.bodyText,
         bodyHtml: email.bodyHtml ?? null,
+        attachmentCount: 0,
+        attachmentNamesJson: null,
+        contentFingerprint,
         receivedAt: email.receivedAt,
         source: email.source,
       },
-      create: email,
+      create: {
+        ...email,
+        attachmentCount: 0,
+        attachmentNamesJson: null,
+        contentFingerprint,
+      },
     });
   }
 }

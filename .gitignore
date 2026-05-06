@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/playwright-report
+/test-results
 
 # next.js
 /.next/
@@ -43,11 +45,18 @@ dev.db
 dev.db-journal
 prisma/dev.db
 prisma/dev.db-journal
+prisma/test-vitest.db
+prisma/test-vitest.db-journal
+prisma/test-vitest.db-wal
+prisma/test-vitest.db-shm
+prisma/e2e.db
+prisma/e2e.db-journal
+prisma/e2e.db-wal
+prisma/e2e.db-shm
 
 # local exports
 exports/
-*.csv
-*.json
+/backups/
 
 # vercel
 .vercel

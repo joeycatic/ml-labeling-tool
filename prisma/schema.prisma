@@ -18,6 +18,9 @@ model Email {
   snippet        String   @default("")
   bodyText       String?
   bodyHtml       String?
+  attachmentCount     Int      @default(0)
+  attachmentNamesJson String?
+  contentFingerprint  String?
   receivedAt     DateTime
   label          String?
   category       String?
@@ -35,4 +38,43 @@ model Email {
   @@index([messageId])
   @@index([category])
   @@index([isLabeled, receivedAt])
+  @@index([contentFingerprint])
+}
+
+model ImportBatch {
+  id               String @id @default(cuid())
+  status           String @default("completed")
+  sourceSurface    String
+  fileCount        Int    @default(0)
+  rowCount         Int    @default(0)
+  createdCount     Int    @default(0)
+  updatedCount     Int    @default(0)
+  deletedCount     Int    @default(0)
+  removedSeedCount Int    @default(0)
+  createdAt        DateTime @default(now())
+
+  events EmailChangeEvent[]
+}
+
+model EmailChangeEvent {
+  id            String   @id @default(cuid())
+  emailId        Int
+  importBatchId  String?
+  eventType      String
+  sourceSurface  String
+  changedFields  String
+  beforeState    String?
+  afterState     String?
+  labelChanged   Boolean  @default(false)
+  emailSubject   String?
+  senderEmail    String?
+  label          String?
+  category       String?
+  createdAt      DateTime @default(now())
+
+  importBatch ImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+
+  @@index([emailId, createdAt])
+  @@index([importBatchId, createdAt])
+  @@index([labelChanged, createdAt])
 }
