@@ -8,6 +8,7 @@ The import page accepts:
 - JSON
 - EML
 - MBOX
+- multiple EML files in one batch
 
 ## Recommended Import Order
 
@@ -29,6 +30,7 @@ Recommended fields:
 Use EML or MBOX when you are exporting from a mail client.
 
 - `.eml` is good for single messages
+- multiple `.eml` files can be uploaded together
 - `.mbox` is good for folders or batches
 
 ## WEB.DE Workflow
@@ -48,7 +50,7 @@ WEB.DE does not provide a clean native CSV/JSON mailbox export. The simplest fre
    - selected messages as `.eml`, or
    - a folder as `.mbox`
 4. Open `/import` in the dashboard.
-5. Upload the file and import it into SQLite.
+5. Upload the file or files, review the import preview, and then confirm the write.
 
 ## Import Rules
 
@@ -56,6 +58,7 @@ WEB.DE does not provide a clean native CSV/JSON mailbox export. The simplest fre
 - `senderEmail` and `receivedAt` should always be present
 - categories and labels can be imported, but unlabeled imports are fine
 - extensionless mailbox files are detected by content, not only by filename
+- the server previews creates, updates, invalid rows, and duplicates before committing anything
 - importing real mailbox data automatically removes seeded placeholder emails from the sample dataset
 - if an older local database already contains both sample and real emails, the app removes the seeded rows automatically on the next normal read
 

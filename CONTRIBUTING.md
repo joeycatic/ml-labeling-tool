@@ -13,9 +13,7 @@ This project is intentionally local-first. Changes should preserve these constra
 
 ```bash
 npm install
-cp .env.example .env
-npx prisma migrate dev --name init
-npm run db:seed
+npm run setup
 npm run dev
 ```
 
@@ -34,6 +32,7 @@ Run:
 ```bash
 npm run lint
 npm run build
+npm run test
 ```
 
 If you change the schema:

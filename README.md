@@ -63,14 +63,19 @@ Everything runs locally with SQLite and Prisma.
 - CSV and JSON import for structured data
 - EML import for single saved emails
 - MBOX import for Thunderbird or mailbox exports
+- multi-file `.eml` batch import
+- server-side dry-run preview before commit
+- duplicate detection inside each upload
 - content-based format detection, including extensionless mailbox files
 
 ### Dataset review and editing
 
 - searchable email explorer at `/emails`
 - filter by label, category, and status
+- bulk relabeling and category changes
 - edit labels after first pass
 - pagination and direct email selection
+- append-only audit history per email
 
 ### Stats and quality controls
 
@@ -78,6 +83,7 @@ Everything runs locally with SQLite and Prisma.
 - class counts by label and category
 - recent labeling activity
 - imbalance warning for ML readiness
+- duplicate, attachment, thread, and sender-domain signals
 - export excludes empty subject + empty body rows
 
 ### ML-ready export
@@ -141,22 +147,12 @@ npm install
 ### 2. Create the local environment file
 
 ```bash
-cp .env.example .env
+npm run setup
 ```
 
-### 3. Create the SQLite database
+This creates `.env` when needed, applies migrations, and seeds sample data if the database is empty.
 
-```bash
-npx prisma migrate dev --name init
-```
-
-### 4. Seed sample emails
-
-```bash
-npm run db:seed
-```
-
-### 5. Start the app
+### 3. Start the app
 
 ```bash
 npm run dev
@@ -172,6 +168,7 @@ The dashboard accepts:
 - `.json`
 - `.eml`
 - `.mbox`
+- multiple `.eml` files in one batch
 
 If your email provider does not export CSV or JSON directly, the common path is:
 
@@ -179,6 +176,7 @@ If your email provider does not export CSV or JSON directly, the common path is:
 2. sync the mailbox into Thunderbird
 3. export messages as `.eml` or `.mbox`
 4. upload them on `/import`
+5. review the preview summary before confirming the write
 
 If the database still contains the seeded placeholder emails, the first real import removes those sample rows automatically before writing your mailbox data. Older databases that already mixed sample and real emails are also cleaned automatically the next time the app loads email data.
 
@@ -237,10 +235,18 @@ For the exact export contract, see [docs/DATASET.md](./docs/DATASET.md).
 ## Development Commands
 
 ```bash
+npm run setup
 npm run dev
 npm run build
 npm run lint
+npm run test
+npm run test:e2e
 npm run db:seed
+npm run db:backup
+npm run db:restore -- --file=<backup-path>
+npm run db:archive
+npm run db:reset
+npm run db:rollback-import -- <batch-id>
 npx prisma studio
 ```
 
@@ -267,6 +273,7 @@ docs/                 User-facing operational documentation
 - no direct IMAP sync inside the app yet
 - no multi-user auth layer
 - no model training pipeline inside this repo
+- heuristics are local-only helpers, not ML predictions
 
 ## Contributing
 

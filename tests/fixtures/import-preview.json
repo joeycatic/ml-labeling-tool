@@ -1,0 +1,16 @@
+[
+  {
+    "senderEmail": "professor@uni.edu",
+    "subject": "Assignment deadline",
+    "snippet": "Submit by Friday",
+    "bodyText": "Please upload your report by Friday at 17:00.",
+    "receivedAt": "2026-05-01T09:30:00Z"
+  },
+  {
+    "senderEmail": "career@uni.edu",
+    "subject": "Internship fair registration open",
+    "snippet": "Meet employers from tech and research.",
+    "bodyText": "Registration is now open for the university summer internship fair.",
+    "receivedAt": "2026-05-04T11:00:00Z"
+  }
+]
