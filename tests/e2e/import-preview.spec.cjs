@@ -10,6 +10,10 @@ const fixturePath = path.join(
 
 test("shows a server-side import review before commit", async ({ page }) => {
   await page.goto("/import");
+  await page.getByRole("switch", { name: "Switch to dark mode" }).click();
+  await expect(
+    page.getByRole("switch", { name: "Switch to light mode" }),
+  ).toBeVisible();
   await page.locator('input[type="file"]').setInputFiles(fixturePath);
 
   await expect(page.getByText("Review before importing")).toBeVisible();

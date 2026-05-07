@@ -1,10 +1,10 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 import { buildContentFingerprint } from "../src/lib/email-fingerprint";
 
 const prisma = new PrismaClient();
 
-type SampleEmail = Prisma.EmailCreateInput & {
+type SampleEmail = {
   messageId: string;
   threadId: string;
   senderName: string;
@@ -13,6 +13,7 @@ type SampleEmail = Prisma.EmailCreateInput & {
   subject: string;
   snippet: string;
   bodyText: string | null;
+  bodyHtml?: string | null;
   receivedAt: Date;
   source: string;
 };
