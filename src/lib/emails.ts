@@ -50,6 +50,44 @@ export type ListEmailsResult = {
   pageSize: number;
 };
 
+export type CountByKey = {
+  key: string;
+  count: number;
+};
+
+export type RecentActivityEntry = {
+  id: string;
+  emailId: number;
+  label: string | null;
+  category: string | null;
+  senderEmail: string;
+  subject: string;
+  labeledAt: Date;
+  updatedAt: Date;
+};
+
+export type SenderDomainCount = {
+  domain: string;
+  count: number;
+};
+
+export type StatsResult = {
+  summary: ProgressSummary;
+  labelCounts: CountByKey[];
+  categoryCounts: CountByKey[];
+  recentActivity: RecentActivityEntry[];
+  classBalance: CountByKey[];
+  topSenderDomains: SenderDomainCount[];
+  duplicateClusterCount: number;
+  threadedEmailCount: number;
+  attachmentEmailCount: number;
+  balanceWarning: string | null;
+};
+
+export type BulkUpdateResult = {
+  updatedCount: number;
+};
+
 async function ensureSeedDataConsistency() {
   if (globalForSeedCleanup.seedCleanupPromise) {
     await globalForSeedCleanup.seedCleanupPromise;
@@ -183,7 +221,7 @@ export async function getProgressSummary(): Promise<ProgressSummary> {
   };
 }
 
-export async function getNextUnlabeledEmail(excludeIds: number[] = []) {
+export async function getNextUnlabeledEmail(excludeIds: number[] = []): Promise<Email | null> {
   await ensureSeedDataConsistency();
   const db = getDb();
 
@@ -204,7 +242,7 @@ export async function getNextUnlabeledEmail(excludeIds: number[] = []) {
   });
 }
 
-export async function getEmailById(id: number) {
+export async function getEmailById(id: number): Promise<Email | null> {
   await ensureSeedDataConsistency();
   const db = getDb();
 
@@ -239,7 +277,7 @@ export async function getEmailHistory(id: number, take = 10): Promise<EmailHisto
 export async function labelEmail(
   id: number,
   input: { label: string; category?: string | null; notes?: string | null },
-) {
+): Promise<Email> {
   return mutateEmailWithAudit({
     id,
     sourceSurface: "label-workbench",
@@ -253,7 +291,7 @@ export async function labelEmail(
 export async function updateEmail(
   id: number,
   input: { label?: string | null; category?: string | null; notes?: string | null },
-) {
+): Promise<Email> {
   return mutateEmailWithAudit({
     id,
     sourceSurface: "email-editor",
@@ -269,7 +307,7 @@ export async function bulkUpdateEmails(input: {
   label?: string | null;
   category?: string | null;
   clearCategory?: boolean;
-}) {
+}): Promise<BulkUpdateResult> {
   await ensureSeedDataConsistency();
   const db = getDb();
 
@@ -383,7 +421,7 @@ export async function listEmails(input: ListEmailsInput): Promise<ListEmailsResu
   };
 }
 
-export async function getStats() {
+export async function getStats(): Promise<StatsResult> {
   await ensureSeedDataConsistency();
   const db = getDb();
   const summary = await getProgressSummary();
