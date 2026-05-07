@@ -1,17 +1,18 @@
-import type { Email, Prisma, PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 
 import {
   createEmailSnapshot,
   getChangedEmailFields,
   serializeEmailSnapshot,
 } from "./email-snapshots";
+import type { EmailModel } from "./prisma-types";
 
 type AuditClient = PrismaClient | Prisma.TransactionClient;
 
 type RecordEmailChangeInput = {
   db: AuditClient;
-  before: Email | null;
-  after: Email | null;
+  before: EmailModel | null;
+  after: EmailModel | null;
   emailId: number;
   eventType: string;
   sourceSurface: string;

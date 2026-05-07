@@ -1,7 +1,7 @@
-import type { Email } from "@prisma/client";
+import type { EmailModel } from "./prisma-types";
 
 export type EmailRecord = Omit<
-  Email,
+  EmailModel,
   "bodyHtml" | "receivedAt" | "labeledAt" | "createdAt" | "updatedAt"
 > & {
   receivedAt: string;
@@ -10,7 +10,7 @@ export type EmailRecord = Omit<
   updatedAt: string;
 };
 
-export function serializeEmail(email: Email | null): EmailRecord | null {
+export function serializeEmail(email: EmailModel | null): EmailRecord | null {
   if (!email) {
     return null;
   }

@@ -1,5 +1,5 @@
 import Papa from "papaparse";
-import type { Email, Prisma, PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 
 import { recordEmailChangeEvent } from "./audit";
 import { getDb } from "./db";
@@ -9,6 +9,7 @@ import {
 } from "./email-fingerprint";
 import { badRequest } from "./errors";
 import { parseMailboxImportWithReport } from "./mail-import";
+import type { EmailModel } from "./prisma-types";
 import { importEmailRowSchema } from "./validation";
 
 type ImportDb = PrismaClient | Prisma.TransactionClient;
@@ -548,7 +549,7 @@ export async function commitImportPlan(
         where: { messageId: row.messageId },
       });
       const data = buildEmailWriteData(row);
-      let after: Email;
+      let after: EmailModel;
 
       if (existing) {
         after = await transaction.email.update({

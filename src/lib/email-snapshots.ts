@@ -1,4 +1,4 @@
-import type { Email } from "@prisma/client";
+import type { EmailModel } from "./prisma-types";
 
 export type EmailSnapshot = {
   id: number;
@@ -47,7 +47,7 @@ const MUTABLE_FIELDS = [
   "source",
 ] as const;
 
-export function createEmailSnapshot(email: Email): EmailSnapshot {
+export function createEmailSnapshot(email: EmailModel): EmailSnapshot {
   return {
     id: email.id,
     messageId: email.messageId,
@@ -74,7 +74,7 @@ export function createEmailSnapshot(email: Email): EmailSnapshot {
   };
 }
 
-export function serializeEmailSnapshot(email: Email | null) {
+export function serializeEmailSnapshot(email: EmailModel | null) {
   return email ? JSON.stringify(createEmailSnapshot(email)) : null;
 }
 

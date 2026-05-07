@@ -1,4 +1,4 @@
-import type { Email, Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import { recordEmailChangeEvent } from "./audit";
 import { CATEGORY_VALUES, LABEL_VALUES, ML_EXPORT_LABELS } from "./constants";
@@ -6,6 +6,7 @@ import { getDb } from "./db";
 import { parseEmailSnapshot } from "./email-snapshots";
 import { extractSenderDomain } from "./email-fingerprint";
 import { notFound } from "./errors";
+import type { EmailModel } from "./prisma-types";
 import { buildTrainingText, escapeCsv, percent } from "./utils";
 
 const globalForSeedCleanup = globalThis as typeof globalThis & {
@@ -43,7 +44,7 @@ export type EmailHistoryEntry = {
 };
 
 export type ListEmailsResult = {
-  emails: Email[];
+  emails: EmailModel[];
   totalCount: number;
   page: number;
   totalPages: number;
@@ -221,7 +222,7 @@ export async function getProgressSummary(): Promise<ProgressSummary> {
   };
 }
 
-export async function getNextUnlabeledEmail(excludeIds: number[] = []): Promise<Email | null> {
+export async function getNextUnlabeledEmail(excludeIds: number[] = []): Promise<EmailModel | null> {
   await ensureSeedDataConsistency();
   const db = getDb();
 
@@ -242,7 +243,7 @@ export async function getNextUnlabeledEmail(excludeIds: number[] = []): Promise<
   });
 }
 
-export async function getEmailById(id: number): Promise<Email | null> {
+export async function getEmailById(id: number): Promise<EmailModel | null> {
   await ensureSeedDataConsistency();
   const db = getDb();
 
@@ -277,7 +278,7 @@ export async function getEmailHistory(id: number, take = 10): Promise<EmailHisto
 export async function labelEmail(
   id: number,
   input: { label: string; category?: string | null; notes?: string | null },
-): Promise<Email> {
+): Promise<EmailModel> {
   return mutateEmailWithAudit({
     id,
     sourceSurface: "label-workbench",
@@ -291,7 +292,7 @@ export async function labelEmail(
 export async function updateEmail(
   id: number,
   input: { label?: string | null; category?: string | null; notes?: string | null },
-): Promise<Email> {
+): Promise<EmailModel> {
   return mutateEmailWithAudit({
     id,
     sourceSurface: "email-editor",
