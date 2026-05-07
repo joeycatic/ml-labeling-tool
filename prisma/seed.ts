@@ -1,8 +1,21 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 import { buildContentFingerprint } from "../src/lib/email-fingerprint";
 
 const prisma = new PrismaClient();
+
+type SampleEmail = Prisma.EmailCreateInput & {
+  messageId: string;
+  threadId: string;
+  senderName: string;
+  senderEmail: string;
+  recipientEmail: string;
+  subject: string;
+  snippet: string;
+  bodyText: string | null;
+  receivedAt: Date;
+  source: string;
+};
 
 const sampleEmails = [
   {
@@ -239,7 +252,7 @@ const sampleEmails = [
     receivedAt: new Date("2026-04-23T19:00:00.000Z"),
     source: "seed",
   },
-] satisfies Parameters<typeof prisma.email.upsert>[0]["create"][];
+] satisfies SampleEmail[];
 
 async function main() {
   for (const email of sampleEmails) {
