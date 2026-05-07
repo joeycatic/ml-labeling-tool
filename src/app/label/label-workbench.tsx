@@ -17,12 +17,67 @@ import {
   type EmailLabel,
 } from "@/lib/constants";
 import type { ProgressSummary } from "@/lib/emails";
+import {
+  buildLabelSessionSnapshot,
+  LABEL_SESSION_MAX_AGE_MS,
+  LABEL_SESSION_STORAGE_KEY,
+  parseLabelSessionSnapshot,
+  type LabelDraftMap,
+} from "@/lib/label-session";
 import type { EmailRecord } from "@/lib/serializers";
 
 type LabelWorkbenchProps = {
   initialEmail: EmailRecord | null;
   initialProgress: ProgressSummary;
 };
+
+function buildInitialSessionState(initialEmail: EmailRecord | null) {
+  const fallbackDrafts: LabelDraftMap = initialEmail
+    ? {
+        [initialEmail.id]: {
+          category: initialEmail.category ?? "",
+          notes: initialEmail.notes ?? "",
+        },
+      }
+    : {};
+
+  const fallbackState = {
+    trail: initialEmail ? [initialEmail] : [],
+    index: initialEmail ? 0 : -1,
+    drafts: fallbackDrafts,
+    seenIds: initialEmail ? [initialEmail.id] : [],
+    didRestoreSession: false,
+  };
+
+  if (typeof window === "undefined") {
+    return fallbackState;
+  }
+
+  const snapshot = parseLabelSessionSnapshot(
+    window.localStorage.getItem(LABEL_SESSION_STORAGE_KEY),
+  );
+
+  if (!snapshot) {
+    return fallbackState;
+  }
+
+  if (Date.now() - Date.parse(snapshot.savedAt) > LABEL_SESSION_MAX_AGE_MS) {
+    window.localStorage.removeItem(LABEL_SESSION_STORAGE_KEY);
+    return fallbackState;
+  }
+
+  if (snapshot.trail.length === 0 || snapshot.index < 0) {
+    return fallbackState;
+  }
+
+  return {
+    trail: snapshot.trail,
+    index: snapshot.index,
+    drafts: snapshot.drafts as LabelDraftMap,
+    seenIds: snapshot.seenIds,
+    didRestoreSession: true,
+  };
+}
 
 function updateProgressCounts(
   previous: ProgressSummary,
@@ -73,21 +128,15 @@ export function LabelWorkbench({
   initialEmail,
   initialProgress,
 }: LabelWorkbenchProps) {
-  const [trail, setTrail] = useState<EmailRecord[]>(initialEmail ? [initialEmail] : []);
-  const [index, setIndex] = useState(initialEmail ? 0 : -1);
+  const [initialSessionState] = useState(() => buildInitialSessionState(initialEmail));
+  const [trail, setTrail] = useState<EmailRecord[]>(initialSessionState.trail);
+  const [index, setIndex] = useState(initialSessionState.index);
   const [progress, setProgress] = useState(initialProgress);
-  const [drafts, setDrafts] = useState<Record<number, { category: string; notes: string }>>(
-    initialEmail
-      ? {
-          [initialEmail.id]: {
-            category: initialEmail.category ?? "",
-            notes: initialEmail.notes ?? "",
-          },
-        }
-      : {},
-  );
+  const [drafts, setDrafts] = useState<LabelDraftMap>(initialSessionState.drafts);
+  const [seenIds, setSeenIds] = useState<number[]>(initialSessionState.seenIds);
   const [error, setError] = useState<string | null>(null);
   const [pendingLabel, setPendingLabel] = useState<EmailLabel | null>(null);
+  const [didRestoreSession] = useState(initialSessionState.didRestoreSession);
   const [isPending, startTransition] = useTransition();
 
   const currentEmail = useMemo(
@@ -102,8 +151,39 @@ export function LabelWorkbench({
       }
     : { category: "", notes: "" };
 
+  const persistSession = useEffectEvent(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      const snapshot = buildLabelSessionSnapshot({
+        trail,
+        index,
+        drafts,
+        seenIds,
+      });
+
+      window.localStorage.setItem(
+        LABEL_SESSION_STORAGE_KEY,
+        JSON.stringify(snapshot),
+      );
+    } catch {
+      // Ignore storage write failures so labeling can continue.
+    }
+  });
+
+  function discardRecoveredSession() {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.removeItem(LABEL_SESSION_STORAGE_KEY);
+    window.location.reload();
+  }
+
   async function fetchNextEmail() {
-    const excludeIds = trail.map((email) => email.id);
+    const excludeIds = seenIds;
     const params = new URLSearchParams();
 
     if (excludeIds.length > 0) {
@@ -118,6 +198,11 @@ export function LabelWorkbench({
       return null;
     }
 
+    setSeenIds((previous) =>
+      previous.includes(result.email!.id)
+        ? previous
+        : [...previous, result.email!.id],
+    );
     setTrail((previous) => {
       const nextTrail = previous.slice(0, index + 1);
       nextTrail.push(result.email as EmailRecord);
@@ -280,6 +365,46 @@ export function LabelWorkbench({
     };
   }, []);
 
+  useEffect(() => {
+    persistSession();
+  }, [drafts, index, seenIds, trail]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        persistSession();
+      }
+    };
+    const handlePageHide = () => {
+      persistSession();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("pagehide", handlePageHide);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pagehide", handlePageHide);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isPending) {
+      return;
+    }
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isPending]);
+
   return (
     <div className="animate-enter space-y-6">
       <Panel>
@@ -302,6 +427,22 @@ export function LabelWorkbench({
               </span>
             </div>
             <ProgressBar value={progress.labeled} total={progress.total} />
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-stone-500">
+              <p>
+                {didRestoreSession
+                  ? "Restored your last session. Progress autosaves locally across refreshes and tab switches."
+                  : "Progress autosaves locally across refreshes and tab switches."}
+              </p>
+              {didRestoreSession ? (
+                <button
+                  type="button"
+                  onClick={discardRecoveredSession}
+                  className="font-medium text-stone-700 underline decoration-stone-300 underline-offset-4 transition hover:text-stone-900"
+                >
+                  Start fresh
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
       </Panel>
