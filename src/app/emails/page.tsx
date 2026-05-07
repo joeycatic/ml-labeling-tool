@@ -62,7 +62,9 @@ export default async function EmailsPage({
   const selectedId = parsed.emailId ?? result.emails[0]?.id ?? null;
   const [selectedEmail, history] = await Promise.all([
     selectedId ? getEmailById(selectedId) : null,
-    selectedId ? getEmailHistory(selectedId, 12) : [],
+    selectedId
+      ? getEmailHistory(selectedId, 12)
+      : Promise.resolve<Awaited<ReturnType<typeof getEmailHistory>>>([]),
   ]);
   const selectedRecord = serializeEmail(selectedEmail);
   const rows = result.emails.map((email) => ({
