@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Email, Prisma } from "@prisma/client";
 
 import { recordEmailChangeEvent } from "./audit";
 import { CATEGORY_VALUES, LABEL_VALUES, ML_EXPORT_LABELS } from "./constants";
@@ -40,6 +40,14 @@ export type EmailHistoryEntry = {
   label: string | null;
   category: string | null;
   subject: string | null;
+};
+
+export type ListEmailsResult = {
+  emails: Email[];
+  totalCount: number;
+  page: number;
+  totalPages: number;
+  pageSize: number;
 };
 
 async function ensureSeedDataConsistency() {
@@ -321,7 +329,7 @@ export async function bulkUpdateEmails(input: {
   });
 }
 
-export async function listEmails(input: ListEmailsInput) {
+export async function listEmails(input: ListEmailsInput): Promise<ListEmailsResult> {
   await ensureSeedDataConsistency();
   const db = getDb();
   const where: Prisma.EmailWhereInput = {};
